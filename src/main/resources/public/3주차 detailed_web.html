@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <meta name="description" content="웹 개발 기술 스택 상세 소개 페이지">
+        <meta name="author" content="TemplateMo">
+
+        <title>웹(Web) 기술 스택 | First Portfolio</title>
+
+        <!-- CSS FILES : 메인화면(index.html)과 동일한 파일을 그대로 사용해야 색상/폰트가 일치한다 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+        <link href="/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+        <link href="/css/templatemo-first-portfolio-style.css" rel="stylesheet">
+
+        <!-- 이 페이지에서만 쓰는 추가 스타일.
+             원본 CSS는 건드리지 않고, 변수(:root)만 재사용해서 색감을 그대로 이어간다. -->
+        <style>
+            /* 밝은 배경 위에서 쓰기 위한 진한 강조색.
+               원본 민트(#14B789)는 흰 배경에서 대비가 낮아 작은 글씨에 부적합하다. */
+            :root {
+                --accent-dark: #0e7a5a;
+            }
+
+            /* ----- 상단 네비게이션 (밝은 배경용) -----
+               원본 .navbar 는 배경이 투명 + 글자/테두리가 흰색이라
+               컬러 히어로가 없는 이 페이지에서는 보이지 않는다.
+               템플릿의 .is-sticky(스크롤 시 흰 바) 스타일과 같은 방식으로 되돌린다. */
+            .navbar-solid {
+                position: relative;          /* 원본은 absolute → 콘텐츠 위에 겹침 */
+                background: var(--white-color);
+                box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+                padding-bottom: 15px;
+            }
+
+            .navbar-solid .navbar-brand,
+            .navbar-solid .navbar-brand:hover {
+                color: var(--dark-color);    /* 흰색 → 검은색 */
+            }
+
+            .navbar-solid .navbar-icon {
+                background: var(--secondary-color);
+                color: var(--white-color);   /* 흰 배경 아이콘 → 민트 배경 + 흰 아이콘 */
+            }
+
+            .navbar-solid .custom-btn {
+                background: transparent;
+                border-color: var(--secondary-color);
+                color: var(--accent-dark);   /* 흰색 글자/테두리 → 민트 계열 */
+            }
+
+            .navbar-solid .custom-btn:hover {
+                background: var(--secondary-color);
+                border-color: var(--secondary-color);
+                color: var(--white-color);
+            }
+
+            .page-header {
+                background: var(--section-bg-color);
+                padding-top: 80px;           /* 네비가 자리를 차지하므로 여백 축소 */
+                padding-bottom: 80px;
+            }
+
+            .page-header .breadcrumb-link {
+                font-size: var(--menu-font-size);
+                font-weight: var(--font-weight-bold);
+                color: var(--accent-dark);
+                text-transform: uppercase;
+            }
+
+            /* services-thumb 를 기술카드용으로 축소 변형 (아이콘 영역이 없으므로 아래 여백을 줄임) */
+            .tech-thumb {
+                background: var(--white-color);
+                border: 2px solid var(--border-color);
+                border-radius: var(--border-radius-medium);
+                padding: 35px;
+                height: 100%;
+                transition: all 0.5s;
+            }
+
+            .tech-thumb:hover {
+                border-color: var(--secondary-color);
+                transform: translateY(-8px);
+            }
+
+            .tech-thumb-icon {
+                font-size: 42px;
+                color: var(--primary-color);
+                line-height: normal;
+            }
+
+            .tech-thumb h4 {
+                font-size: var(--h5-font-size);
+                margin-top: 15px;
+                margin-bottom: 20px;
+            }
+
+            /* 기술 태그 (Bootstrap 의 badge 대신 템플릿 색상으로 직접 정의) */
+            .tech-tag {
+                display: inline-block;
+                background: var(--section-bg-color);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-large);
+                color: var(--p-color);
+                font-size: 16px;
+                font-weight: var(--font-weight-medium);
+                padding: 6px 16px;
+                margin: 0 6px 10px 0;
+            }
+
+            .tech-tag:hover {
+                background: var(--secondary-color);
+                border-color: var(--secondary-color);
+                color: var(--white-color);
+            }
+
+            /* 숙련도 그래프 */
+            .skill-label {
+                font-size: var(--p-font-size);
+                font-weight: var(--font-weight-medium);
+                color: var(--dark-color);
+                margin-bottom: 8px;
+            }
+
+            .skill-bar {
+                background: var(--border-color);
+                border-radius: var(--border-radius-large);
+                height: 10px;
+                overflow: hidden;
+                margin-bottom: 28px;
+            }
+
+            .skill-bar span {
+                display: block;
+                height: 100%;
+                background: var(--secondary-color);
+                border-radius: var(--border-radius-large);
+            }
+
+            /* 작업 흐름(타임라인) */
+            .flow-item {
+                border-left: 2px solid var(--border-color);
+                padding-left: 30px;
+                padding-bottom: 35px;
+                position: relative;
+            }
+
+            .flow-item:last-child {
+                border-left-color: transparent;
+                padding-bottom: 0;
+            }
+
+            .flow-item::before {
+                content: '';
+                position: absolute;
+                left: -9px;
+                top: 4px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: var(--secondary-color);
+            }
+
+            .flow-step {
+                font-size: 16px;
+                font-weight: var(--font-weight-bold);
+                color: var(--accent-dark);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            @media screen and (max-width: 991px) {
+                .page-header {
+                    padding-top: 120px;
+                    padding-bottom: 60px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-expand-lg navbar-solid">
+            <div class="container">
+                <a href="/" class="navbar-brand">First</a>
+
+                <div class="d-flex align-items-center ms-auto">
+                    <i class="navbar-icon bi-arrow-left-circle me-3"></i>
+                    <a class="custom-btn btn" href="/">메인으로 돌아가기</a>
+                </div>
+            </div>
+        </nav>
+
+        <main>
+
+            <!-- ===== 페이지 헤더 ===== -->
+            <section class="page-header">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-8 col-12">
+                            <p class="breadcrumb-link mb-2">Services / Web</p>
+
+                            <h1 class="mb-4">웹(Web) 개발</h1>
+
+                            <p class="mb-0">
+                                기획부터 화면 설계, 서버 개발, 배포까지 하나의 흐름으로 진행합니다.
+                                Spring Boot 기반의 서버와 Bootstrap 기반의 반응형 화면을 결합해
+                                어떤 기기에서도 동일한 사용자 경험을 제공하는 웹 서비스를 만듭니다.
+                            </p>
+                        </div>
+
+                        <div class="col-lg-3 col-12 ms-auto mt-5 mt-lg-0">
+                            <div class="section-title-wrap d-flex justify-content-center align-items-center">
+                                <h2 class="text-white mb-0">$2,400</h2>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- 메인화면 히어로 하단과 동일한 물결 장식 (색상 #535da1 = --primary-color) -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="#535da1" fill-opacity="1" d="M0,160L24,160C48,160,96,160,144,138.7C192,117,240,75,288,64C336,53,384,75,432,106.7C480,139,528,181,576,208C624,235,672,245,720,240C768,235,816,213,864,186.7C912,160,960,128,1008,133.3C1056,139,1104,181,1152,202.7C1200,224,1248,224,1296,197.3C1344,171,1392,117,1416,90.7L1440,64L1440,0L1416,0C1392,0,1344,0,1296,0C1248,0,1200,0,1152,0C1104,0,1056,0,1008,0C960,0,912,0,864,0C816,0,768,0,720,0C672,0,624,0,576,0C528,0,480,0,432,0C384,0,336,0,288,0C240,0,192,0,144,0C96,0,48,0,24,0L0,0Z"></path></svg>
+
+            <!-- ===== 요약 숫자 ===== -->
+            <section class="featured section-padding">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-3 col-6 py-2">
+                            <strong class="featured-numbers">18</strong>
+                            <p class="featured-text">웹 프로젝트</p>
+                        </div>
+
+                        <div class="col-lg-3 col-6 featured-border-start ps-5 py-2">
+                            <strong class="featured-numbers">7+</strong>
+                            <p class="featured-text">년 개발 경력</p>
+                        </div>
+
+                        <div class="col-lg-3 col-6 featured-border-start ps-5 py-2 mt-4 mt-lg-0">
+                            <strong class="featured-numbers">4</strong>
+                            <p class="featured-text">주요 기술 분야</p>
+                        </div>
+
+                        <div class="col-lg-3 col-6 featured-border-start ps-5 py-2 mt-4 mt-lg-0">
+                            <strong class="featured-numbers">99%</strong>
+                            <p class="featured-text">서비스 가동률</p>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 기술 스택 카드 ===== -->
+            <section class="services section-padding">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-10 col-12 mx-auto">
+                            <div class="section-title-wrap d-flex justify-content-center align-items-center mb-5">
+                                <h2 class="text-white mb-0">기술 스택</h2>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="tech-thumb">
+                                <i class="tech-thumb-icon bi-window-desktop"></i>
+                                <h4>프론트엔드</h4>
+                                <p class="mb-4">사용자가 직접 보고 조작하는 화면을 담당합니다. 반응형 그리드로 PC와 모바일을 모두 지원합니다.</p>
+
+                                <a href="#" class="tech-tag">HTML5</a>
+                                <a href="#" class="tech-tag">CSS3</a>
+                                <a href="#" class="tech-tag">JavaScript (ES6+)</a>
+                                <a href="#" class="tech-tag">Bootstrap 5</a>
+                                <a href="#" class="tech-tag">jQuery</a>
+                                <a href="#" class="tech-tag">Thymeleaf</a>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="tech-thumb">
+                                <i class="tech-thumb-icon bi-hdd-stack"></i>
+                                <h4>백엔드</h4>
+                                <p class="mb-4">요청을 처리하고 비즈니스 로직을 수행하는 서버 영역입니다. 이 포트폴리오 사이트도 동일한 구성으로 동작합니다.</p>
+
+                                <a href="#" class="tech-tag">Java 25</a>
+                                <a href="#" class="tech-tag">Spring Boot 4.1</a>
+                                <a href="#" class="tech-tag">Spring MVC</a>
+                                <a href="#" class="tech-tag">Spring Data JPA</a>
+                                <a href="#" class="tech-tag">Lombok</a>
+                                <a href="#" class="tech-tag">REST API</a>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="tech-thumb">
+                                <i class="tech-thumb-icon bi-database"></i>
+                                <h4>데이터베이스</h4>
+                                <p class="mb-4">데이터를 안정적으로 저장하고 빠르게 조회합니다. 개발 단계와 운영 단계의 DB를 분리해 사용합니다.</p>
+
+                                <a href="#" class="tech-tag">MySQL</a>
+                                <a href="#" class="tech-tag">H2 Database</a>
+                                <a href="#" class="tech-tag">JPA / Hibernate</a>
+                                <a href="#" class="tech-tag">MyBatis</a>
+                                <a href="#" class="tech-tag">SQL 튜닝</a>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-12 mb-4">
+                            <div class="tech-thumb">
+                                <i class="tech-thumb-icon bi-tools"></i>
+                                <h4>개발 도구 &amp; 배포</h4>
+                                <p class="mb-4">협업과 배포 자동화를 위한 도구입니다. 형상관리와 빌드 과정을 표준화해 실수를 줄입니다.</p>
+
+                                <a href="#" class="tech-tag">Git / GitHub</a>
+                                <a href="#" class="tech-tag">Maven</a>
+                                <a href="#" class="tech-tag">Docker</a>
+                                <a href="#" class="tech-tag">AWS EC2</a>
+                                <a href="#" class="tech-tag">IntelliJ IDEA</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 숙련도 + 작업 흐름 ===== -->
+            <section class="featured section-padding">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-6 col-12">
+                            <h3 class="mb-5">숙련도</h3>
+
+                            <p class="skill-label mb-2">Java / Spring Boot</p>
+                            <div class="skill-bar"><span style="width: 90%;"></span></div>
+
+                            <p class="skill-label mb-2">HTML / CSS / Bootstrap</p>
+                            <div class="skill-bar"><span style="width: 85%;"></span></div>
+
+                            <p class="skill-label mb-2">JavaScript / jQuery</p>
+                            <div class="skill-bar"><span style="width: 75%;"></span></div>
+
+                            <p class="skill-label mb-2">Database / JPA</p>
+                            <div class="skill-bar"><span style="width: 80%;"></span></div>
+                        </div>
+
+                        <div class="col-lg-5 col-12 ms-auto mt-5 mt-lg-0">
+                            <h3 class="mb-5">진행 방식</h3>
+
+                            <div class="flow-item">
+                                <p class="flow-step mb-1">Step 01</p>
+                                <h5 class="mb-2">요구사항 분석</h5>
+                                <p class="mb-0">필요한 기능과 화면을 정리하고 개발 범위를 확정합니다.</p>
+                            </div>
+
+                            <div class="flow-item">
+                                <p class="flow-step mb-1">Step 02</p>
+                                <h5 class="mb-2">화면 설계 &amp; 퍼블리싱</h5>
+                                <p class="mb-0">반응형 레이아웃으로 화면을 먼저 구현해 결과를 미리 확인합니다.</p>
+                            </div>
+
+                            <div class="flow-item">
+                                <p class="flow-step mb-1">Step 03</p>
+                                <h5 class="mb-2">서버 &amp; DB 개발</h5>
+                                <p class="mb-0">Spring Boot 로 기능을 구현하고 데이터베이스와 연동합니다.</p>
+                            </div>
+
+                            <div class="flow-item">
+                                <p class="flow-step mb-1">Step 04</p>
+                                <h5 class="mb-2">테스트 &amp; 배포</h5>
+                                <p class="mb-0">테스트 후 서버에 배포하고 운영 상태를 모니터링합니다.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 마무리 안내 ===== -->
+            <section class="services section-padding">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-8 col-12 mx-auto text-center">
+                            <h3 class="mb-3">함께 만들어 볼까요?</h3>
+                            <p class="mb-4">프로젝트에 대한 이야기를 들려주시면 적합한 기술 구성을 제안해 드립니다.</p>
+
+                            <a href="/#section_5" class="custom-btn custom-border-btn btn">연락하기</a>
+                            <a href="/" class="custom-btn btn ms-2">목록으로</a>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-lg-12 col-12">
+                        <div class="copyright-text-wrap">
+                            <p class="mb-0">
+                                <span class="copyright-text">Copyright © 2036 <a href="/">First Portfolio</a> Company. All rights reserved.</span>
+                                Design:
+                                <a rel="sponsored" href="https://templatemo.com" target="_blank">TemplateMo</a>
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </footer>
+
+        <!-- JAVASCRIPT FILES -->
+        <script src="/js/jquery.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
+
+    </body>
+</html>
