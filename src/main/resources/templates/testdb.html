@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>데이터베이스 테스트</title>
+</head>
+<body>
+    <h1>User List</h1>
+    <table border="1">
+        <!-- th:each를 사용해 컨트롤러에서 보낸 users 리스트를 반복 처리 -->
+        <tr th:each="user : ${users}">
+            <!-- th:each를 사용해 컨트롤러에서 보낸 users 리스트를 반복 처리 -->
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.name}"></td>
+        </tr>
+    </table>
+</body>
+</html>
