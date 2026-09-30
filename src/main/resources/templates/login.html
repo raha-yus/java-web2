@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>로그인 - First Portfolio</title>
+
+        <!-- [5주차 제공] 포트폴리오와 같은 부트스트랩/테마 CSS 사용 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+
+        <style>
+            .auth-page {
+                min-height: 100vh;
+                background: linear-gradient(135deg, var(--primary-color) 0%, #3d4580 100%);
+                padding: 48px 16px;
+            }
+            .auth-card {
+                background: var(--white-color);
+                border-radius: var(--border-radius-medium);
+                box-shadow: 0 1rem 3rem rgba(0, 0, 0, .2);
+                max-width: 440px;
+                width: 100%;
+                padding: 40px 36px;
+            }
+            .auth-card h2 { font-size: var(--h4-font-size); color: var(--dark-color); }
+            .auth-card .form-control {
+                border-radius: var(--border-radius-small);
+                padding: 12px 16px;
+            }
+            .auth-card .form-control:focus {
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 .2rem rgba(20, 183, 137, .2);
+            }
+            .auth-card .custom-btn { width: 100%; border: 0; }
+            .auth-icon {
+                width: 64px; height: 64px; line-height: 64px;
+                border-radius: 50%;
+                background: var(--secondary-color);
+                color: var(--white-color);
+                font-size: 28px;
+                text-align: center;
+            }
+            .auth-check { width: 18px; height: 18px; accent-color: var(--secondary-color); cursor: pointer; }
+            .auth-links a { color: var(--primary-color); font-weight: var(--font-weight-medium); }
+            .auth-links a:hover { color: var(--secondary-color); }
+        </style>
+    </head>
+
+    <body>
+        <main class="auth-page d-flex justify-content-center align-items-center">
+            <div class="auth-card">
+
+                <div class="text-center mb-4">
+                    <a th:href="@{/}" class="d-inline-block auth-icon mb-3"><i class="bi-person-lock"></i></a>
+                    <h2 class="mb-1">로그인</h2>
+                    <p class="text-muted mb-0">포트폴리오 회원 전용 서비스</p>
+                </div>
+
+                <!-- 결과 메시지 : 스프링 시큐리티가 붙여주는 URL 파라미터(?error, ?logout)와 회원가입(?signup) -->
+                <div th:if="${param.error}" class="alert alert-danger py-2" role="alert">
+                    <i class="bi-exclamation-circle me-1"></i> 아이디 또는 비밀번호가 올바르지 않습니다.
+                </div>
+                <div th:if="${param.logout}" class="alert alert-secondary py-2" role="alert">
+                    <i class="bi-box-arrow-right me-1"></i> 로그아웃 되었습니다.
+                </div>
+                <div th:if="${param.signup}" class="alert alert-success py-2" role="alert">
+                    <i class="bi-check-circle me-1"></i> 회원가입이 완료되었습니다. 로그인 해주세요.
+                </div>
+
+                <!-- th:action 을 사용하면 CSRF 토큰(_csrf)이 hidden 으로 자동 삽입된다. -->
+                <!-- POST /login 은 컨트롤러가 아니라 스프링 시큐리티 필터가 직접 처리한다. -->
+                <form th:action="@{/login}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">아이디</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               placeholder="아이디를 입력하세요" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">비밀번호</label>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="비밀번호를 입력하세요" required>
+                    </div>
+
+                    <!-- [연습문제] remember-me : SecurityConfig 에 rememberMe() 설정 시 동작 -->
+                    <div class="d-flex align-items-center mb-4">
+                        <input class="auth-check me-2" type="checkbox" id="remember-me" name="remember-me">
+                        <label for="remember-me">로그인 상태 유지</label>
+                    </div>
+
+                    <button type="submit" class="custom-btn btn">로그인</button>
+                </form>
+
+                <div class="auth-links d-flex justify-content-between mt-4">
+                    <a th:href="@{/}"><i class="bi-house me-1"></i>메인으로</a>
+                    <a th:href="@{/signup}">회원가입<i class="bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

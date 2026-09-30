@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>회원가입 - First Portfolio</title>
+
+        <!-- [5주차 제공] 포트폴리오와 같은 부트스트랩/테마 CSS 사용 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+
+        <style>
+            .auth-page {
+                min-height: 100vh;
+                background: linear-gradient(135deg, var(--primary-color) 0%, #3d4580 100%);
+                padding: 48px 16px;
+            }
+            .auth-card {
+                background: var(--white-color);
+                border-radius: var(--border-radius-medium);
+                box-shadow: 0 1rem 3rem rgba(0, 0, 0, .2);
+                max-width: 440px;
+                width: 100%;
+                padding: 40px 36px;
+            }
+            .auth-card h2 { font-size: var(--h4-font-size); color: var(--dark-color); }
+            .auth-card .form-control {
+                border-radius: var(--border-radius-small);
+                padding: 12px 16px;
+            }
+            .auth-card .form-control:focus {
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 .2rem rgba(20, 183, 137, .2);
+            }
+            .auth-card .custom-btn { width: 100%; border: 0; }
+            .auth-icon {
+                width: 64px; height: 64px; line-height: 64px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                color: var(--white-color);
+                font-size: 28px;
+                text-align: center;
+            }
+            .auth-links a { color: var(--primary-color); font-weight: var(--font-weight-medium); }
+            .auth-links a:hover { color: var(--secondary-color); }
+        </style>
+    </head>
+
+    <body>
+        <main class="auth-page d-flex justify-content-center align-items-center">
+            <div class="auth-card">
+
+                <div class="text-center mb-4">
+                    <a th:href="@{/}" class="d-inline-block auth-icon mb-3"><i class="bi-person-plus"></i></a>
+                    <h2 class="mb-1">회원가입</h2>
+                    <p class="text-muted mb-0">비밀번호는 BCrypt 로 암호화되어 저장됩니다.</p>
+                </div>
+
+                <!-- 가입 실패 메시지 : 컨트롤러에서 model.addAttribute("error", ...) 로 전달 -->
+                <div th:if="${error}" class="alert alert-danger py-2" role="alert">
+                    <i class="bi-exclamation-circle me-1"></i> <span th:text="${error}">에러 메시지</span>
+                </div>
+
+                <!-- name 속성 = MemberForm(DTO) 의 필드 이름 : username, password, passwordConfirm, name -->
+                <!-- 가입 실패 시 입력값 유지 : ${memberForm?.username} (없으면 빈 값) -->
+                <form th:action="@{/signup}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">아이디</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               th:value="${memberForm?.username}"
+                               placeholder="영문/숫자 4~20자" minlength="4" maxlength="20" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">비밀번호</label>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="4자 이상" minlength="4" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="passwordConfirm" class="form-label">비밀번호 확인</label>
+                        <input type="password" class="form-control" id="passwordConfirm" name="passwordConfirm"
+                               placeholder="비밀번호를 한 번 더 입력하세요" minlength="4" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="name" class="form-label">이름</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               th:value="${memberForm?.name}"
+                               placeholder="홍길동" maxlength="50" required>
+                    </div>
+
+                    <button type="submit" class="custom-btn btn">가입하기</button>
+                </form>
+
+                <div class="auth-links d-flex justify-content-between mt-4">
+                    <a th:href="@{/}"><i class="bi-house me-1"></i>메인으로</a>
+                    <a th:href="@{/login}">이미 회원이신가요? 로그인<i class="bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

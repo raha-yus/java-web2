@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="[http://www.thymeleaf.org](http://www.thymeleaf.org)">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,16 +14,27 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+        <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
 
         <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
 
         <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
 
-        <link th:href="@{/css/magnific-popup.css}" rel="stylesheet">
+        <link th:href="@{/css/magnific-popup.css}" rel="stylesheet" media="print" onload="this.media='all'">
+        <noscript><link th:href="@{/css/magnific-popup.css}" rel="stylesheet"></noscript>
 
         <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
-        
+
+        <link rel="preload" as="image" fetchpriority="high" th:href="@{/images/portrait-happy-excited-man-holding-laptop-computer.png}">
+
+        <!-- [5주차] 네비게이션 로그인 사용자 표시 스타일 -->
+        <style>
+            .navbar-user { color: var(--white-color); font-size: var(--p-font-size); white-space: nowrap; }
+            .navbar.is-sticky .navbar-user { color: var(--dark-color); }
+            a.navbar-icon:hover { background: var(--secondary-color); color: var(--white-color); }
+        </style>
+
 <!--
 
 TemplateMo 578 First Portfolio
@@ -48,13 +59,18 @@ https://templatemo.com/tm-578-first-portfolio
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <a href="index.html" class="navbar-brand mx-auto mx-lg-0">First</a>
+                <a th:href="@{/}" class="navbar-brand mx-auto mx-lg-0">First</a>
 
+                <!-- [5주차] 모바일 화면 : 로그인 / 로그아웃 버튼 -->
                 <div class="d-flex align-items-center d-lg-none">
-                    <i class="navbar-icon bi-telephone-plus me-3"></i>
-                    <a class="custom-btn btn" href="#section_5">
-                        120-240-9600
+                    <a sec:authorize="isAnonymous()" class="custom-btn btn" th:href="@{/login}">
+                        <i class="bi-box-arrow-in-right me-1"></i>로그인
                     </a>
+                    <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="custom-btn btn">
+                            <i class="bi-box-arrow-right me-1"></i>로그아웃
+                        </button>
+                    </form>
                 </div>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
@@ -78,13 +94,33 @@ https://templatemo.com/tm-578-first-portfolio
                         <li class="nav-item">
                             <a class="nav-link click-scroll" href="#section_5">연락처</a>
                         </li>
+
+                        <!-- [5주차] 회원 전용 페이지 : 로그인하지 않으면 로그인 화면으로 이동 -->
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/testdb}">회원목록</a>
+                        </li>
                     </ul>
 
+                    <!-- [5주차] PC 화면 : 로그인 상태에 따라 버튼 전환 (sec:authorize) -->
                     <div class="d-lg-flex align-items-center d-none ms-auto">
-                        <i class="navbar-icon bi-telephone-plus me-3"></i>
-                        <a class="custom-btn btn" href="#section_5">
-                            120-240-9600
-                        </a>
+                        <!-- 로그인 전 : 로그인 / 회원가입 -->
+                        <th:block sec:authorize="isAnonymous()">
+                            <a class="navbar-icon bi-person-plus me-3 text-center" th:href="@{/signup}" title="회원가입"></a>
+                            <a class="custom-btn btn" th:href="@{/login}">
+                                <i class="bi-box-arrow-in-right me-1"></i>로그인
+                            </a>
+                        </th:block>
+
+                        <!-- 로그인 후 : 사용자 아이디 + 로그아웃 (CSRF 때문에 POST 폼으로 전송) -->
+                        <th:block sec:authorize="isAuthenticated()">
+                            <i class="navbar-icon bi-person-circle me-2 text-center"></i>
+                            <span class="navbar-user me-3"><strong sec:authentication="name">user</strong>님</span>
+                            <form th:action="@{/logout}" method="post" class="m-0">
+                                <button type="submit" class="custom-btn btn">
+                                    <i class="bi-box-arrow-right me-1"></i>로그아웃
+                                </button>
+                            </form>
+                        </th:block>
                     </div>
                 </div>
 
@@ -102,17 +138,17 @@ https://templatemo.com/tm-578-first-portfolio
                                 <div class="hero-title-wrap d-flex align-items-center mb-4">
                                     <img th:src="@{/images/profile.png}" class="avatar-image avatar-image-large img-fluid" alt="">
 
-                                    <h1 class="hero-title ms-3 mb-0">안녕하세요. 박규민입니다!</h1>
+                                    <h1 class="hero-title ms-3 mb-0">안녕하세요, 여러분!</h1>
                                 </div>
 
-                                <h2 class="mb-4">저는 웹/게임 개발자 입니다.</h2>
+                                <h2 class="mb-4">저는 웹 풀스택 개발자입니다.</h2>
                                 <p class="mb-4"><a class="custom-btn btn custom-link" href="#section_2">Let's begin</a></p>
                             </div>
                         </div>
 
                         <div class="col-lg-5 col-12 position-relative">
                             <div class="hero-image-wrap"></div>
-                            <img th:src="@{/images/portrait-happy-excited-man-holding-laptop-computer.png}" class="hero-image img-fluid" alt="">
+                            <img th:src="@{/images/portrait-happy-excited-man-holding-laptop-computer.png}" fetchpriority="high" class="hero-image img-fluid" alt="">
                         </div>
 
                     </div>
@@ -268,7 +304,7 @@ https://templatemo.com/tm-578-first-portfolio
                                 <div class="col-lg-6 col-12">
                                     <div class="services-thumb">
                                         <div class="d-flex flex-wrap align-items-center border-bottom mb-4 pb-3">
-                                            <h3 class="mb-0">웹</h3>
+                                            <h3 class="mb-0">(웹)Websites</h3>
 
                                             <div class="services-price-wrap ms-auto">
                                                 <p class="services-price-text mb-0">$2,400</p>
@@ -278,7 +314,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                         <p>You may want to explore Too CSS for great collection of free HTML CSS templates.</p>
 
-                                        <a th:href="@{/detailed_web.html}" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
+                                        <a href="/detailed_web.html" target="_blank" rel="noopener noreferrer" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
 
                                         <div class="services-icon-wrap d-flex justify-content-center align-items-center">
                                             <i class="services-icon bi-globe"></i>
@@ -289,7 +325,7 @@ https://templatemo.com/tm-578-first-portfolio
                                 <div class="col-lg-6 col-12">
                                     <div class="services-thumb services-thumb-up">
                                         <div class="d-flex flex-wrap align-items-center border-bottom mb-4 pb-3">
-                                            <h3 class="mb-0">AI</h3>
+                                            <h3 class="mb-0">(AI)인공지능</h3>
 
                                             <div class="services-price-wrap ms-auto">
                                                 <p class="services-price-text mb-0">$1,200</p>
@@ -299,10 +335,10 @@ https://templatemo.com/tm-578-first-portfolio
 
                                         <p>You can explore more CSS templates on TemplateMo website by browsing through different tags.</p>
 
-                                        <a th:href="@{/detailed_branding.html}" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
+                                        <a href="#" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
 
                                         <div class="services-icon-wrap d-flex justify-content-center align-items-center">
-                                            <i class="services-icon bi-lightbulb"></i>
+                                            <i class="services-icon bi-anthropic"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -310,7 +346,7 @@ https://templatemo.com/tm-578-first-portfolio
                                 <div class="col-lg-6 col-12">
                                     <div class="services-thumb">
                                         <div class="d-flex flex-wrap align-items-center border-bottom mb-4 pb-3">
-                                            <h3 class="mb-0">보안</h3>
+                                            <h3 class="mb-0">(보안)Security</h3>
 
                                             <div class="services-price-wrap ms-auto">
                                                 <p class="services-price-text mb-0">$3,600</p>
@@ -320,7 +356,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                         <p>If you need a customized ecommerce website for your business, feel free to discuss with me.</p>
 
-                                        <a th:href="@{/detailed_ecommerce.html}" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
+                                        <a href="#" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
 
                                         <div class="services-icon-wrap d-flex justify-content-center align-items-center">
                                             <i class="services-icon bi-phone"></i>
@@ -331,7 +367,7 @@ https://templatemo.com/tm-578-first-portfolio
                                 <div class="col-lg-6 col-12">
                                     <div class="services-thumb services-thumb-up">
                                         <div class="d-flex flex-wrap align-items-center border-bottom mb-4 pb-3">
-                                            <h3 class="mb-0">게임</h3>
+                                            <h3 class="mb-0">(게임)GAME</h3>
 
                                             <div class="services-price-wrap ms-auto">
                                                 <p class="services-price-text mb-0">$1,450</p>
@@ -341,7 +377,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                         <p>To list your website first on any search engine, we will work together. First Portfolio is one-page CSS Template for free download.</p>
 
-                                        <a th:href="@{/detailed_seo.html}" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
+                                        <a href="#" class="custom-btn custom-border-btn btn mt-3">Discover More</a>
 
                                         <div class="services-icon-wrap d-flex justify-content-center align-items-center">
                                             <i class="services-icon bi-google"></i>
@@ -372,7 +408,7 @@ https://templatemo.com/tm-578-first-portfolio
                         <div class="col-lg-4 col-md-6 col-12">
                             <div class="projects-thumb">
                                 <div class="projects-info">
-                                    <small class="projects-tag">AI</small>
+                                    <small class="projects-tag">Branding</small>
 
                                     <h3 class="projects-title">Zoik agency</h3>
                                 </div>
@@ -431,16 +467,16 @@ https://templatemo.com/tm-578-first-portfolio
 
                             <div class="col-lg-3 col-md-6 col-12 pe-lg-0">
                                 <div class="contact-info contact-info-border-start d-flex flex-column">
-                                    <strong class="site-footer-title d-block mb-3">기술/경험</strong>
+                                    <strong class="site-footer-title d-block mb-3">Services</strong>
 
                                     <ul class="footer-menu">
-                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">웹</a></li>
+                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Websites</a></li>
 
-                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">AI</a></li>
+                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Branding</a></li>
 
-                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">보안</a></li>
+                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Ecommerce</a></li>
 
-                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">게임</a></li>
+                                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">SEO</a></li>
                                     </ul>
 
                                     <strong class="site-footer-title d-block mt-4 mb-3">Stay connected</strong>
@@ -512,7 +548,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                                 <label class="form-check-label" for="inlineCheckbox1">
                                                     <i class="bi-globe form-check-icon"></i>
-                                                    <span class="form-check-label-text">웹</span>
+                                                    <span class="form-check-label-text">Websites</span>
                                                 </label>
                                           </div>
                                         </div>
@@ -522,8 +558,8 @@ https://templatemo.com/tm-578-first-portfolio
                                                 <input name="branding" type="checkbox" class="form-check-input" id="inlineCheckbox2" value="1">
 
                                                 <label class="form-check-label" for="inlineCheckbox2">
-                                                    <i class="bi-lightbulb form-check-icon"></i>
-                                                    <span class="form-check-label-text">AI</span>
+                                                    <i class="bi bi-anthropic form-check-icon"></i>
+                                                    <span class="form-check-label-text">Branding</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -534,7 +570,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                                 <label class="form-check-label" for="inlineCheckbox3">
                                                     <i class="bi-phone form-check-icon"></i>
-                                                    <span class="form-check-label-text">보안</span>
+                                                    <span class="form-check-label-text">Ecommerce</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -545,7 +581,7 @@ https://templatemo.com/tm-578-first-portfolio
 
                                                 <label class="form-check-label" for="inlineCheckbox4">
                                                     <i class="bi-google form-check-icon"></i>
-                                                    <span class="form-check-label-text">게임</span>
+                                                    <span class="form-check-label-text">SEO</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -594,7 +630,6 @@ https://templatemo.com/tm-578-first-portfolio
         <!-- JAVASCRIPT FILES -->
         <script th:src="@{/js/jquery.min.js}"></script>
         <script th:src="@{/js/bootstrap.min.js}"></script>
-        <script th:src="@{/js/jquery.sticky.js}"></script>
         <script th:src="@{/js/click-scroll.js}"></script>
         <script th:src="@{/js/jquery.magnific-popup.min.js}"></script>
         <script th:src="@{/js/magnific-popup-options.js}"></script>
