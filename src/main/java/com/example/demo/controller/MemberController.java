@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.example.demo.model.dto.MemberForm;
 import com.example.demo.model.service.MemberService;
 
+import java.security.Principal;
+import com.example.demo.model.domain.Member;
+
 @Controller // 컨트롤러 어노테이션 명시
 public class MemberController {
 
@@ -23,6 +26,13 @@ public class MemberController {
     @GetMapping("/signup") // 회원가입 화면
     public String signupForm() {
         return "signup"; // signup.html 연결
+    }
+
+    @GetMapping("/mypage") // 내 정보 : 로그인한 사람만
+    public String mypage(Principal principal, Model model) { // 현재 로그인 사용자
+        Member member = memberService.findByUsername(principal.getName());
+        model.addAttribute("member", member);
+        return "mypage"; // mypage.html 연결
     }
 
     @PostMapping("/signup") // 회원가입 처리

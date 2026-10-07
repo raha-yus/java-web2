@@ -33,6 +33,21 @@
             .navbar-user { color: var(--white-color); font-size: var(--p-font-size); white-space: nowrap; }
             .navbar.is-sticky .navbar-user { color: var(--dark-color); }
             a.navbar-icon:hover { background: var(--secondary-color); color: var(--white-color); }
+            /* [6주차] 권한(ROLE) 배지, 관리자 메뉴 */
+            .role-badge { font-size: 11px; font-weight: var(--font-weight-bold); padding: 2px 8px; border-radius: 20px; color: var(--white-color); vertical-align: middle; }
+            .role-ADMIN   { background: #e05260; }
+            .role-MANAGER { background: #f0a030; }
+            .role-USER    { background: var(--secondary-color); }
+            .navbar .nav-link.nav-link-admin { color: #e05260; }
+            /* [6주차] 메뉴가 늘어나도 한 줄 유지 */
+            .navbar-nav .nav-link, .navbar .custom-btn { white-space: nowrap; }
+            @media (min-width: 992px) {
+                .navbar-expand-lg .navbar-nav .nav-link { margin-left: 12px; margin-right: 12px; }
+            }
+            @media (min-width: 992px) and (max-width: 1199px) {
+                .navbar-expand-lg .navbar-nav .nav-link { margin-left: 7px; margin-right: 7px; font-size: 15px; }
+                .navbar i.navbar-icon { display: none; }
+            }
         </style>
 
 <!--
@@ -99,6 +114,16 @@ https://templatemo.com/tm-578-first-portfolio
                         <li class="nav-item">
                             <a class="nav-link" th:href="@{/testdb}">회원목록</a>
                         </li>
+
+                        <!-- [6주차] 로그인한 사람만 보이는 메뉴 : 내 정보 -->
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+                            <a class="nav-link" th:href="@{/mypage}">내 정보</a>
+                        </li>
+
+                        <!-- [6주차] 관리자(ROLE_ADMIN)만 보이는 메뉴 : 메뉴를 숨겨도 주소(URL) 직접 입력은 막지 못한다! -->
+                        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                            <a class="nav-link nav-link-admin" th:href="@{/admin/members}"><i class="bi-shield-lock me-1"></i>관리자</a>
+                        </li>
                     </ul>
 
                     <!-- [5주차] PC 화면 : 로그인 상태에 따라 버튼 전환 (sec:authorize) -->
@@ -114,7 +139,12 @@ https://templatemo.com/tm-578-first-portfolio
                         <!-- 로그인 후 : 사용자 아이디 + 로그아웃 (CSRF 때문에 POST 폼으로 전송) -->
                         <th:block sec:authorize="isAuthenticated()">
                             <i class="navbar-icon bi-person-circle me-2 text-center"></i>
-                            <span class="navbar-user me-3"><strong sec:authentication="name">user</strong>님</span>
+                            <span class="navbar-user me-3"><strong sec:authentication="name">user</strong>님
+                                <!-- [6주차] 내 권한 배지 : hasRole('권한') 이 true 인 것만 표시 -->
+                                <span sec:authorize="hasRole('ADMIN')" class="role-badge role-ADMIN">ADMIN</span>
+                                <span sec:authorize="hasRole('MANAGER')" class="role-badge role-MANAGER">MANAGER</span>
+                                <span sec:authorize="hasRole('USER')" class="role-badge role-USER">USER</span>
+                            </span>
                             <form th:action="@{/logout}" method="post" class="m-0">
                                 <button type="submit" class="custom-btn btn">
                                     <i class="bi-box-arrow-right me-1"></i>로그아웃

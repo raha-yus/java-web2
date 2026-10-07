@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>내 정보 - First Portfolio</title>
+
+        <!-- [6주차 제공] 포트폴리오와 같은 부트스트랩/테마 CSS 사용 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+
+        <style>
+            .auth-page {
+                min-height: 100vh;
+                background: linear-gradient(135deg, var(--primary-color) 0%, #3d4580 100%);
+                padding: 48px 16px;
+            }
+            .auth-card {
+                background: var(--white-color);
+                border-radius: var(--border-radius-medium);
+                box-shadow: 0 1rem 3rem rgba(0, 0, 0, .2);
+                max-width: 520px;
+                width: 100%;
+                padding: 40px 36px;
+            }
+            .auth-card h2 { font-size: var(--h4-font-size); color: var(--dark-color); }
+            .auth-icon {
+                width: 64px; height: 64px; line-height: 64px;
+                border-radius: 50%;
+                background: var(--secondary-color);
+                color: var(--white-color);
+                font-size: 28px;
+                text-align: center;
+            }
+            .info-table th { width: 38%; color: var(--p-color); font-weight: var(--font-weight-medium); }
+            .info-table td { color: var(--dark-color); font-weight: var(--font-weight-medium); }
+            .role-badge { font-size: 12px; font-weight: var(--font-weight-bold); padding: 4px 10px; border-radius: 20px; color: var(--white-color); }
+            .role-ADMIN   { background: #e05260; }
+            .role-MANAGER { background: #f0a030; }
+            .role-USER    { background: var(--secondary-color); }
+            .access-list li { padding: 6px 0; border-bottom: 1px dashed #e5e5e5; }
+            .access-list li:last-child { border-bottom: 0; }
+            .access-list a { color: var(--primary-color); font-weight: var(--font-weight-medium); }
+            .custom-btn { border: 0; }
+            .auth-links a { color: var(--primary-color); font-weight: var(--font-weight-medium); }
+            .auth-links a:hover { color: var(--secondary-color); }
+        </style>
+    </head>
+
+    <body>
+        <main class="auth-page d-flex justify-content-center align-items-center">
+            <div class="auth-card">
+
+                <div class="text-center mb-4">
+                    <a th:href="@{/}" class="d-inline-block auth-icon mb-3"><i class="bi-person-vcard"></i></a>
+                    <h2 class="mb-1">내 정보</h2>
+                    <p class="text-muted mb-0">로그인한 사용자 정보와 권한(ROLE)</p>
+                </div>
+
+                <!-- ① DB 에서 조회한 회원 정보 : 컨트롤러의 model.addAttribute("member", ...) -->
+                <h6 class="mb-2"><i class="bi-database me-1"></i>DB 회원 정보 <small class="text-muted">(member 테이블)</small></h6>
+                <table class="table info-table mb-4">
+                    <tr><th>번호</th><td th:text="${member.id}">1</td></tr>
+                    <tr><th>아이디</th><td th:text="${member.username}">student1</td></tr>
+                    <tr><th>이름</th><td th:text="${member.name}">홍길동</td></tr>
+                    <tr>
+                        <th>권한 (role)</th>
+                        <td><span class="role-badge" th:classappend="'role-' + ${member.role}" th:text="${member.role}">USER</span></td>
+                    </tr>
+                </table>
+
+                <!-- ② 스프링 시큐리티 세션에 저장된 권한 : 로그인할 때 loadUserByUsername() 이 만든 값 -->
+                <h6 class="mb-2"><i class="bi-shield-check me-1"></i>시큐리티 권한 <small class="text-muted">(로그인 세션)</small></h6>
+                <div class="alert alert-light border py-2 mb-4">
+                    <code sec:authentication="principal.authorities">[ROLE_USER]</code>
+                    <div class="small text-muted mt-1">
+                        DB 권한과 다르다면? → 로그인 이후 권한이 바뀐 것! <strong>다시 로그인</strong>하세요.
+                    </div>
+                </div>
+
+                <!-- ③ 권한 테스트 : sec:authorize 로 내 권한에 따라 다른 안내 -->
+                <h6 class="mb-2"><i class="bi-key me-1"></i>접근 권한 테스트</h6>
+                <ul class="list-unstyled access-list mb-4">
+                    <li class="d-flex justify-content-between">
+                        <a th:href="@{/mypage}">/mypage (내 정보)</a>
+                        <span class="text-success"><i class="bi-check-circle"></i> 로그인 사용자</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <a th:href="@{/testdb}">/testdb (회원목록)</a>
+                        <span class="text-muted"><i class="bi-question-circle"></i> 직접 확인</span>
+                    </li>
+                    <li class="d-flex justify-content-between">
+                        <a th:href="@{/admin/members}">/admin/members (회원 관리)</a>
+                        <span sec:authorize="hasRole('ADMIN')" class="text-success"><i class="bi-check-circle"></i> 관리자 OK</span>
+                        <span sec:authorize="!hasRole('ADMIN')" class="text-danger"><i class="bi-x-circle"></i> 관리자 전용</span>
+                    </li>
+                </ul>
+
+                <!-- 관리자에게만 보이는 버튼 -->
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/members}" class="custom-btn btn w-100 mb-3">
+                    <i class="bi-shield-lock me-1"></i>관리자 페이지로 이동
+                </a>
+
+                <div class="auth-links d-flex justify-content-between">
+                    <a th:href="@{/}"><i class="bi-house me-1"></i>메인으로</a>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-link p-0 text-decoration-none" style="color: var(--primary-color);">
+                            로그아웃<i class="bi-box-arrow-right ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>
