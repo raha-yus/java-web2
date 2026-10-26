@@ -11,6 +11,7 @@ import com.example.demo.model.dto.MemberForm;
 import com.example.demo.model.repository.MemberRepository;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Sort;
 
 @Service // 서비스 등록
@@ -23,17 +24,24 @@ public class MemberService implements UserDetailsService { // 로그인을 위�
     private PasswordEncoder passwordEncoder;
 
     public Member signup(MemberForm form) { // 회원가입
+
+        if (form.getUsername() == null || form.getUsername().isBlank()
+                || form.getPassword() == null || form.getPassword().isBlank()
+                || form.getName() == null || form.getName().isBlank()) {
+            throw new IllegalArgumentException("필수 값이 누락되었습니다.");
+        }
+
         if (memberRepository.existsByUsername(form.getUsername())) {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
 
         Member member = new Member();
         member.setUsername(form.getUsername());
-        member.setPassword(passwordEncoder.encode(form.getPassword())); // ★ 암호화
+        member.setPassword(passwordEncoder.encode(form.getPassword()));
         member.setName(form.getName());
-        member.setRole("USER"); // 기본 권한
+        member.setRole("USER");
 
-        return memberRepository.save(member); // INSERT
+        return memberRepository.save(member);
     }
 
     // MemberService : 로그인한 아이디로 회원 조회
@@ -62,10 +70,14 @@ public class MemberService implements UserDetailsService { // 로그인을 위�
         return memberRepository.findAll(Sort.by("id"));
     }
 
+    public Optional<Member> findById(Long id) {
+        return memberRepository.findById(id);
+    }
+
     private static final List<String> ROLES = List.of("USER", "ADMIN");
 
     @PreAuthorize("hasRole('ADMIN')")
-    public void changeRole(Long id, String role) {
+    public Member changeRole(Long id, String role) {
         if (!ROLES.contains(role)) {
             throw new IllegalArgumentException("허용되지 않는 권한입니다 : " + role);
         }
@@ -74,7 +86,7 @@ public class MemberService implements UserDetailsService { // 로그인을 위�
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
         member.setRole(role);
-        memberRepository.save(member);
+        return memberRepository.save(member);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

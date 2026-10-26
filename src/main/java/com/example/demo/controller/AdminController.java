@@ -51,4 +51,9 @@ public class AdminController {
 
         return "redirect:/admin/members";
     }
+
+    @GetMapping("/members-api")
+    public String membersApi() {
+        return "admin/members-api";
+    }
 }

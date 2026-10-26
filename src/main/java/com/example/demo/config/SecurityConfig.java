@@ -8,6 +8,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 @Configuration // 스프링 설정 클래스 등록
 @EnableWebSecurity // 스프링 시큐리티 활성화
@@ -23,10 +26,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth // 1. URL 접근 규칙 (인가)
-                .requestMatchers("/", "/hello", "/detailed_web.html",
-                        "/login", "/signup", "/error").permitAll()
+                .requestMatchers("/", "/hello", "/detailed_web.html", "/login", "/signup", "/error").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/hello").permitAll()
+                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .formLogin(form -> form // 2. 폼 로그인 설정 (인증)
                 .loginPage("/login")
@@ -37,8 +40,13 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID", "remember-me"));
-
+                .deleteCookies("JSESSIONID", "remember-me"))
+            .httpBasic(Customizer.withDefaults())
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+            .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(
+                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                request -> request.getRequestURI().startsWith("/api/")
+            ));
         return http.build();
     }
 }
