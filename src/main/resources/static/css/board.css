@@ -1,0 +1,27 @@
+/* [9주차 제공] 게시판 화면 공통 스타일 (6주차 관리자 화면과 같은 모양) */
+body { background: #f4f6fb; }
+.board-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d4580 100%);
+    color: var(--white-color);
+    padding: 28px 0 88px;
+}
+.board-header h1 { color: var(--white-color); font-size: var(--h3-font-size); margin: 0; }
+.board-header a:not(.btn) { color: rgba(255, 255, 255, .85); }
+.board-header a:not(.btn):hover { color: var(--white-color); }
+.board-body { margin-top: -64px; padding-bottom: 48px; }
+.board-card {
+    background: var(--white-color);
+    border-radius: var(--border-radius-medium);
+    box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .08);
+    padding: 24px;
+}
+.btn-sm-custom { padding: 5px 14px; font-size: 14px; border-radius: var(--border-radius-small); }
+.board-table th { color: var(--p-color); font-weight: var(--font-weight-medium); font-size: var(--copyright-font-size); white-space: nowrap; text-align: center; }
+.board-table td { vertical-align: middle; text-align: center; }
+.board-table td.text-start { text-align: left; }
+.board-title { color: var(--dark-color); font-weight: var(--font-weight-medium); }
+.board-title:hover { color: var(--primary-color); }
+.edited-badge { font-size: 11px; background: #eef2ff; color: #3d4580; padding: 2px 7px; border-radius: 10px; margin-left: 6px; }
+.post-meta { color: var(--p-color); font-size: 14px; }
+.post-content { white-space: pre-wrap; line-height: 1.8; min-height: 160px; color: var(--dark-color); }
+.board-card .form-control { border-radius: var(--border-radius-small); padding: 10px 14px; }

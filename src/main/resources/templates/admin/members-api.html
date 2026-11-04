@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>회원 관리 (API) - 관리자</title>
+
+        <!-- [7주차 제공] 화면은 HTML 껍데기만, 데이터는 JavaScript(fetch)가 /api/admin/members 에서 JSON 으로 가져온다 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+
+        <style>
+            body { background: #f4f6fb; }
+            .admin-header {
+                background: linear-gradient(135deg, var(--primary-color) 0%, #3d4580 100%);
+                color: var(--white-color);
+                padding: 28px 0 88px;
+            }
+            .admin-header h1 { color: var(--white-color); font-size: var(--h3-font-size); margin: 0; }
+            .admin-header a { color: rgba(255, 255, 255, .85); }
+            .admin-header a:hover { color: var(--white-color); }
+            .admin-body { margin-top: -64px; padding-bottom: 48px; }
+            .admin-card {
+                background: var(--white-color);
+                border-radius: var(--border-radius-medium);
+                box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .08);
+                padding: 24px;
+            }
+            .table th { color: var(--p-color); font-weight: var(--font-weight-medium); font-size: var(--copyright-font-size); white-space: nowrap; }
+            .table td { vertical-align: middle; }
+            .role-badge { font-size: 12px; font-weight: var(--font-weight-bold); padding: 4px 10px; border-radius: 20px; color: var(--white-color); }
+            .role-ADMIN   { background: #e05260; }
+            .role-MANAGER { background: #f0a030; }
+            .role-USER    { background: var(--secondary-color); }
+            .me-badge { font-size: 11px; background: var(--primary-color); color: var(--white-color); padding: 2px 8px; border-radius: 10px; }
+            .role-select { width: auto; display: inline-block; padding: 4px 28px 4px 10px; font-size: 14px; }
+            .btn-sm-custom { padding: 4px 12px; font-size: 14px; border-radius: var(--border-radius-small); }
+            .api-chip { font-family: Consolas, monospace; font-size: 12px; background: #eef2ff; color: #3d4580; padding: 2px 8px; border-radius: 6px; }
+            /* HTTP 요청·응답 기록 */
+            .log-box { background: #1e1e1e; color: #d4d4d4; border-radius: var(--border-radius-small); padding: 12px; height: 520px; overflow-y: auto;
+                       font-family: Consolas, monospace; font-size: 12.5px; }
+            .log-item { border-bottom: 1px solid #333; padding: 8px 0; }
+            .log-item:first-child { padding-top: 0; }
+            .log-req { color: #9cdcfe; }
+            .log-st { font-weight: 700; padding: 0 6px; border-radius: 4px; color: #000; }
+            .st-2 { background: #73c991; } .st-4 { background: #f0a030; } .st-5 { background: #e05260; }
+            .log-body { white-space: pre-wrap; word-break: break-all; color: #ce9178; margin: 4px 0 0; }
+        </style>
+    </head>
+
+    <body>
+        <header class="admin-header">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <a th:href="@{/admin/members}" class="small"><i class="bi-arrow-left me-1"></i>기존 회원 관리 (서버가 만든 HTML)</a>
+                    <h1 class="mt-1"><i class="bi-braces me-2"></i>회원 관리 (API 버전)</h1>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span><i class="bi-person-circle me-1"></i><strong sec:authentication="name">admin</strong>님
+                        <code class="ms-1 text-white" sec:authentication="principal.authorities">[ROLE_ADMIN]</code></span>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="btn btn-light btn-sm-custom"><i class="bi-box-arrow-right me-1"></i>로그아웃</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="admin-body">
+            <div class="container">
+                <div class="row g-4">
+                    <!-- 왼쪽 : API 로 그리는 회원 목록 -->
+                    <div class="col-lg-7">
+                        <div class="admin-card mb-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <h5 class="m-0"><i class="bi-list-ul me-2"></i>회원 목록 <span class="api-chip">GET /api/admin/members</span></h5>
+                                <div class="d-flex gap-2">
+                                    <!-- [연습문제 1] ?keyword= 검색 : 연습문제 전에는 전체 목록이 그대로 나온다 -->
+                                    <input id="keyword" class="form-control form-control-sm" style="width: 150px" placeholder="아이디·이름 검색">
+                                    <button id="btn-search" class="btn btn-outline-primary btn-sm-custom"><i class="bi-search"></i></button>
+                                    <button id="btn-reload" class="btn btn-outline-secondary btn-sm-custom" title="새로고침"><i class="bi-arrow-clockwise"></i></button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr><th>번호</th><th>아이디</th><th>이름</th><th>권한</th><th>권한 변경 <span class="api-chip">PATCH</span></th><th>삭제 <span class="api-chip">DELETE</span></th></tr>
+                                    </thead>
+                                    <tbody id="member-rows">
+                                        <tr><td colspan="6" class="text-muted">불러오는 중...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">
+                                <i class="bi-info-circle me-1"></i>버튼을 눌러도 <strong>페이지가 새로고침되지 않는다</strong> — 데이터(JSON)만 주고받고 화면은 JavaScript 가 다시 그린다.
+                            </p>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- 회원 등록 : POST (JSON 본문) -->
+                            <div class="col-md-7">
+                                <div class="admin-card h-100">
+                                    <h6 class="mb-3"><i class="bi-person-plus me-2"></i>회원 등록 <span class="api-chip">POST /api/admin/members</span></h6>
+                                    <form id="create-form" class="row g-2">
+                                        <div class="col-6"><input name="username" class="form-control form-control-sm" placeholder="아이디"></div>
+                                        <div class="col-6"><input name="name" class="form-control form-control-sm" placeholder="이름"></div>
+                                        <div class="col-6"><input name="password" type="password" class="form-control form-control-sm" placeholder="비밀번호"></div>
+                                        <div class="col-6"><input name="passwordConfirm" type="password" class="form-control form-control-sm" placeholder="비밀번호 확인"></div>
+                                        <div class="col-12"><button type="submit" class="btn btn-primary btn-sm-custom w-100">등록 (JSON 전송)</button></div>
+                                    </form>
+                                    <p class="text-muted small mt-2 mb-0">빈 칸으로 보내 보기 → 서버가 400 으로 거절</p>
+                                </div>
+                            </div>
+                            <!-- 회원 1명 조회 : GET /{id} -->
+                            <div class="col-md-5">
+                                <div class="admin-card h-100">
+                                    <h6 class="mb-3"><i class="bi-search me-2"></i>1명 조회 <span class="api-chip">GET /{id}</span></h6>
+                                    <div class="d-flex gap-2">
+                                        <input id="find-id" type="number" class="form-control form-control-sm" placeholder="번호" value="9999">
+                                        <button id="btn-find" class="btn btn-outline-primary btn-sm-custom text-nowrap">조회</button>
+                                    </div>
+                                    <p class="text-muted small mt-2 mb-0">없는 번호 → 404 Not Found</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 오른쪽 : HTTP 요청·응답 기록 -->
+                    <div class="col-lg-5">
+                        <div class="admin-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="m-0"><i class="bi-activity me-2"></i>HTTP 요청 · 응답</h5>
+                                <button id="btn-clear" class="btn btn-outline-secondary btn-sm-custom">지우기</button>
+                            </div>
+                            <div id="log" class="log-box"></div>
+                            <p class="text-muted small mt-2 mb-0">F12 → 네트워크(Network) 탭에서도 같은 요청을 볼 수 있다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script th:inline="javascript">
+            // 로그인한 내 아이디 (내 행에 '나' 표시)
+            const ME = /*[[${#authentication.name}]]*/ 'admin';
+            const API = '/api/admin/members';
+            const ROLES = ['USER', 'MANAGER', 'ADMIN'];
+
+            // ---------- 공통 : fetch 로 API 호출 + 기록 ----------
+            async function callApi(method, url, body) {
+                const options = { method, headers: {} };
+                if (body !== undefined) {                        // 보낼 데이터가 있으면 JSON 문자열로
+                    options.headers['Content-Type'] = 'application/json';
+                    options.body = JSON.stringify(body);
+                }
+                const res = await fetch(url, options);           // 로그인 세션 쿠키는 브라우저가 자동으로 보낸다
+                const text = await res.text();
+                let data = null;
+                try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+                addLog(method, url, body, res.status, data);
+                return { status: res.status, ok: res.ok, data };
+            }
+
+            function addLog(method, url, body, status, data) {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                const reqBody = body !== undefined ? `<pre class="log-body" style="color:#b5cea8">${esc(JSON.stringify(body))}</pre>` : '';
+                // 목록(배열)은 길어서 첫 번째 항목만 보여 주고 개수를 표시
+                const shown = Array.isArray(data) && data.length > 1
+                    ? JSON.stringify([data[0]], null, 2).replace(/\n\]$/, `,\n  … 총 ${data.length}건\n]`)
+                    : (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+                const resBody = data !== null && data !== '' ? `<pre class="log-body">${esc(shown)}</pre>` : '<div class="text-secondary">(본문 없음)</div>';
+                item.innerHTML = `<div><span class="log-req">${method} ${esc(url)}</span> → <span class="log-st st-${String(status)[0]}">${status}</span></div>${reqBody}${resBody}`;
+                const log = document.getElementById('log');
+                log.prepend(item);
+            }
+            const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+            // ---------- 목록 그리기 : GET ----------
+            async function loadMembers(keyword) {
+                const url = keyword ? `${API}?keyword=${encodeURIComponent(keyword)}` : API;
+                const { ok, data } = await callApi('GET', url);
+                const tbody = document.getElementById('member-rows');
+                if (!ok) { tbody.innerHTML = '<tr><td colspan="6" class="text-danger">목록을 불러오지 못했습니다.</td></tr>'; return; }
+                if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-muted">결과가 없습니다.</td></tr>'; return; }
+                tbody.innerHTML = data.map(m => `
+                    <tr>
+                        <td>${m.id}</td>
+                        <td>${esc(m.username)} ${m.username === ME ? '<span class="me-badge ms-1">나</span>' : ''}</td>
+                        <td>${esc(m.name)}</td>
+                        <td><span class="role-badge role-${m.role}">${m.role}</span></td>
+                        <td class="d-flex gap-2">
+                            <select class="form-select role-select" id="role-${m.id}">
+                                ${ROLES.map(r => `<option value="${r}" ${r === m.role ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm-custom" onclick="changeRole(${m.id})">변경</button>
+                        </td>
+                        <td><button class="btn btn-outline-danger btn-sm-custom" onclick="deleteMember(${m.id})"><i class="bi-trash"></i></button></td>
+                    </tr>`).join('');
+            }
+
+            // ---------- 권한 변경 : PATCH ----------
+            async function changeRole(id) {
+                const role = document.getElementById('role-' + id).value;
+                const { ok, data } = await callApi('PATCH', `${API}/${id}/role`, { role });
+                if (!ok) alert(data && data.error ? data.error : '권한 변경 실패');
+                loadMembers();
+            }
+
+            // ---------- 회원 삭제 : DELETE ----------
+            async function deleteMember(id) {
+                if (!confirm('정말 삭제하시겠습니까?')) return;
+                const { ok, data } = await callApi('DELETE', `${API}/${id}`);
+                if (!ok) alert(data && data.error ? data.error : '삭제 실패');
+                loadMembers();
+            }
+
+            // ---------- 회원 등록 : POST ----------
+            document.getElementById('create-form').addEventListener('submit', async (e) => {
+                e.preventDefault();                                   // 폼 기본 전송(페이지 이동) 막기
+                const form = Object.fromEntries(new FormData(e.target)); // {username:..., password:..., ...}
+                const { ok, data } = await callApi('POST', API, form);
+                if (ok) { e.target.reset(); loadMembers(); }
+                else alert(data && data.error ? data.error : '등록 실패');
+            });
+
+            // ---------- 1명 조회 : GET /{id} ----------
+            document.getElementById('btn-find').addEventListener('click', () => callApi('GET', `${API}/${document.getElementById('find-id').value}`));
+            document.getElementById('btn-search').addEventListener('click', () => loadMembers(document.getElementById('keyword').value.trim()));
+            document.getElementById('btn-reload').addEventListener('click', () => { document.getElementById('keyword').value = ''; loadMembers(); });
+            document.getElementById('btn-clear').addEventListener('click', () => document.getElementById('log').innerHTML = '');
+
+            loadMembers(); // 처음 열릴 때 목록 불러오기
+        </script>
+    </body>
+</html>

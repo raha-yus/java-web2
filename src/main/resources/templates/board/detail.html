@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title th:text="|${post.title} - 게시판|">글 보기 - 게시판</title>
+
+        <!-- [9주차 제공] 게시글 상세 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+        <link th:href="@{/css/board.css}" rel="stylesheet">
+    </head>
+
+    <body>
+        <header class="board-header">
+            <div class="container">
+                <a th:href="@{/board}" class="small"><i class="bi-arrow-left me-1"></i>목록으로</a>
+                <h1 class="mt-1"><i class="bi-chat-square-text me-2"></i>게시판</h1>
+            </div>
+        </header>
+
+        <main class="board-body">
+            <div class="container">
+                <div class="board-card">
+                    <!-- post : 컨트롤러가 넘겨준 글 1개 -->
+                    <h3 class="mb-2" th:text="${post.title}">제목</h3>
+                    <div class="post-meta d-flex flex-wrap gap-3 pb-3 mb-3 border-bottom">
+                        <span><i class="bi-person me-1"></i><span th:text="${post.author.name}">홍길동</span>
+                            (<span th:text="${post.author.username}">student1</span>)</span>
+                        <span><i class="bi-clock me-1"></i><span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-20 10:00</span></span>
+                        <span th:if="${post.updatedAt != null}"><i class="bi-pencil me-1"></i>수정 <span th:text="${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}"></span></span>
+                        <span><i class="bi-eye me-1"></i>조회 <span th:text="${post.viewCount}">0</span></span>
+                    </div>
+
+                    <!-- 줄바꿈을 그대로 보여 준다 (white-space: pre-wrap), th:text 라서 HTML 태그는 글자로 보인다 (XSS 방지) -->
+                    <div class="post-content" th:text="${post.content}">내용</div>
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3 border-top"
+                         th:with="isWriter=${#authentication != null and #authentication.name == post.author.username}">
+                        <a th:href="@{/board}" class="btn btn-outline-secondary btn-sm-custom"><i class="bi-list me-1"></i>목록</a>
+                        <div class="d-flex gap-2">
+                            <!-- 수정 버튼 : 글쓴이에게만 보인다 (화면 = 1차 안내, 진짜 검사는 서비스에서) -->
+                            <a th:if="${isWriter}" th:href="@{/board/{id}/edit(id=${post.id})}" class="btn btn-outline-primary btn-sm-custom"><i class="bi-pencil me-1"></i>수정</a>
+                            <!-- 삭제 버튼 : 글쓴이 또는 관리자 -->
+                            <form th:if="${isWriter}" sec:authorize="isAuthenticated()" th:action="@{/board/{id}/delete(id=${post.id})}" method="post" class="m-0"
+                                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm-custom"><i class="bi-trash me-1"></i>삭제</button>
+                            </form>
+                            <form th:unless="${isWriter}" sec:authorize="hasRole('ADMIN')" th:action="@{/board/{id}/delete(id=${post.id})}" method="post" class="m-0"
+                                  onsubmit="return confirm('관리자 권한으로 삭제하시겠습니까?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm-custom"><i class="bi-shield-lock me-1"></i>관리자 삭제</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

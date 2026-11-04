@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title th:text="${postId == null} ? '글쓰기 - 게시판' : '글 수정 - 게시판'">글쓰기 - 게시판</title>
+
+        <!-- [9주차 제공] 글쓰기·수정 공용 화면 : postId 가 있으면 수정, 없으면 새 글 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+        <link th:href="@{/css/board.css}" rel="stylesheet">
+    </head>
+
+    <body>
+        <header class="board-header">
+            <div class="container">
+                <a th:href="${postId == null} ? @{/board} : @{/board/{id}(id=${postId})}" class="small"><i class="bi-arrow-left me-1"></i>돌아가기</a>
+                <h1 class="mt-1"><i class="bi-pencil-square me-2"></i><span th:text="${postId == null} ? '글쓰기' : '글 수정'">글쓰기</span></h1>
+            </div>
+        </header>
+
+        <main class="board-body">
+            <div class="container">
+                <div class="board-card">
+                    <!-- 실패 메시지 : 컨트롤러에서 model.addAttribute("error", ...) -->
+                    <div th:if="${error}" class="alert alert-danger py-2"><i class="bi-exclamation-circle me-1"></i> <span th:text="${error}">에러</span></div>
+
+                    <!-- name 속성 = PostForm(DTO) 의 필드 이름 : title, content (작성자는 보내지 않는다) -->
+                    <form th:action="${postId == null} ? @{/board/write} : @{/board/{id}/edit(id=${postId})}" method="post">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">제목</label>
+                            <input type="text" class="form-control" id="title" name="title" th:value="${postForm?.title}"
+                                   placeholder="제목을 입력하세요" maxlength="100">
+                        </div>
+                        <div class="mb-4">
+                            <label for="content" class="form-label">내용</label>
+                            <textarea class="form-control" id="content" name="content" rows="12"
+                                      placeholder="내용을 입력하세요" th:text="${postForm?.content}"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a th:href="${postId == null} ? @{/board} : @{/board/{id}(id=${postId})}" class="btn btn-outline-secondary btn-sm-custom">취소</a>
+                            <button type="submit" class="btn btn-primary btn-sm-custom">
+                                <i class="bi-check-lg me-1"></i><span th:text="${postId == null} ? '등록' : '수정 완료'">등록</span>
+                            </button>
+                        </div>
+                    </form>
+                    <p class="text-muted small mt-3 mb-0"><i class="bi-info-circle me-1"></i>작성자는 로그인한 계정(<strong sec:authentication="name">user</strong>)으로 자동 저장됩니다.</p>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>
