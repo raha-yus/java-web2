@@ -3,12 +3,15 @@ package com.example.demo.model.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.dto.MemberForm;
 import com.example.demo.model.repository.MemberRepository;
+import com.example.demo.model.repository.PostRepository;
+import com.example.demo.model.repository.CommentRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +22,12 @@ public class MemberService implements UserDetailsService { // 로그인을 위�
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired // SecurityConfig 에 등록한 BCryptPasswordEncoder 주입
     private PasswordEncoder passwordEncoder;
@@ -90,10 +99,25 @@ public class MemberService implements UserDetailsService { // 로그인을 위�
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteMember(Long id) {
+    public void deleteMember(Long id) { // 회원 삭제
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
-        memberRepository.delete(member);
+        checkNotMe(member); // [6주차 연습문제 1]
+
+        if (postRepository.existsByAuthor(member) || commentRepository.existsByAuthor(member)) {
+            throw new IllegalArgumentException("작성한 글이나 댓글이 있는 회원은 삭제할 수 없습니다.");
+        }
+
+        memberRepository.delete(member); // DELETE
+    }
+
+    private void checkNotMe(Member member) {
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+
+        if (member.getUsername().equals(username)) {
+            throw new IllegalArgumentException("자기 자신의 권한 변경·삭제는 할 수 없습니다.");
+        }
     }
 }

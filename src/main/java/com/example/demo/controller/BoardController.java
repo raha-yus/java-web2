@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import com.example.demo.model.domain.Post;
 import com.example.demo.model.dto.PostForm;
 import com.example.demo.model.service.PostService;
+import com.example.demo.model.service.CommentService;
 
 @Controller // 게시판 화면 컨트롤러
 @RequestMapping("/board") // 모든 URL 앞에 /board
@@ -18,11 +20,22 @@ public class BoardController {
 
     @Autowired
     PostService postService;
+    
+    @Autowired // ① 댓글 서비스 필드 추가
+    CommentService commentService;
 
-    @GetMapping // 목록 : GET /board (누구나)
-    public String list(Model model) {
-        List<Post> posts = postService.findAll();
-        model.addAttribute("posts", posts);
+    @GetMapping // 목록 : GET /board?page=0 (누구나)
+    public String list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String keyword,
+            Model model) {
+
+        Page<Post> posts = postService.findPage(keyword, page);
+
+        model.addAttribute("posts", posts.getContent());
+        model.addAttribute("page", posts);
+        model.addAttribute("keyword", keyword);
+
         return "board/list";
     }
 
@@ -52,8 +65,9 @@ public class BoardController {
     
     @GetMapping("/{id}") // 상세 : GET /board/3 (누구나)
     public String detail(@PathVariable Long id, Model model) {
-        Post post = postService.findById(id);
+        Post post = postService.findById(id); // (연습문제를 했다면 read(id))
         model.addAttribute("post", post);
+        model.addAttribute("comments", commentService.findByPost(post)); // ② 댓글 목록 전달
         return "board/detail";
     }
     

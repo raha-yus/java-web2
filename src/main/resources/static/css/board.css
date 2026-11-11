@@ -25,3 +25,13 @@ body { background: #f4f6fb; }
 .post-meta { color: var(--p-color); font-size: 14px; }
 .post-content { white-space: pre-wrap; line-height: 1.8; min-height: 160px; color: var(--dark-color); }
 .board-card .form-control { border-radius: var(--border-radius-small); padding: 10px 14px; }
+/* [10주차 추가] 페이지 번호 · 검색 · 댓글 */
+.pagination .page-link { color: var(--primary-color); }
+.pagination .page-item.active .page-link { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.board-search .form-select { width: auto; }
+.board-search .form-control { width: 200px; }
+.search-info { background: #eef2ff; color: #3d4580; border-radius: var(--border-radius-small); padding: 8px 14px; font-size: 14px; }
+.comment-count { color: var(--primary-color); font-size: 13px; font-weight: var(--font-weight-medium); margin-left: 4px; }
+.comment-list { list-style: none; padding: 0; margin: 0; }
+.comment-item { border-bottom: 1px solid #edf0f5; padding: 12px 0; }
+.comment-content { white-space: pre-wrap; margin-top: 4px; color: var(--dark-color); }

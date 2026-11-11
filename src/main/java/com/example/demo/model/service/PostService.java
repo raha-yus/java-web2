@@ -11,7 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.domain.Post;
@@ -24,8 +26,6 @@ public class PostService {
 
     @Autowired
     private PostRepository postRepository;
-
-    @Autowired
     private MemberRepository memberRepository;
 
     public List<Post> findAll() { // 전체 목록 (최신 글이 위로)
@@ -76,6 +76,24 @@ public class PostService {
                     "글이 존재하지 않습니다."
                 )
             );
+    }
+
+    // 한 페이지에 보여 줄 글 수
+    public static final int PAGE_SIZE = 10;
+
+    // [10주차] 단계 2 : 페이지 목록 + 검색 (검색어가 없으면 전체)
+    public Page<Post> findPage(String keyword, int page) {
+        PageRequest pageable = PageRequest.of(
+            Math.max(page, 0),
+            PAGE_SIZE,
+            Sort.by(Sort.Direction.DESC, "id")
+        );
+
+        if (keyword == null || keyword.isBlank()) {
+            return postRepository.findAll(pageable);
+        }
+
+        return postRepository.search(keyword.trim(), pageable);
     }
     
     public Post findForEdit(Long id) { // 수정 화면에 보여 줄 글 (본인 글만)

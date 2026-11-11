@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>게시판 - First Portfolio</title>
 
-        <!-- [9주차 제공] 게시판 목록 : 6주차 관리자 화면과 같은 디자인 (헤더 + 흰 카드) -->
+        <!-- [9주차 제공 → 10주차 수정] 게시판 목록 : 페이지 번호 + 검색 -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
             <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
                     <a th:href="@{/}" class="small"><i class="bi-house me-1"></i>메인으로</a>
-                    <!-- listTitle 이 없으면 "게시판" ([연습문제 2] 내가 쓴 글 화면에서 다시 사용) -->
+                    <!-- listTitle 이 없으면 "게시판" ("내가 쓴 글" 화면에서 다시 사용) -->
                     <h1 class="mt-1"><i class="bi-chat-square-text me-2"></i><span th:text="${listTitle ?: '게시판'}">게시판</span></h1>
                 </div>
                 <div class="d-flex align-items-center gap-3">
@@ -42,11 +42,30 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                         <h5 class="m-0">
                             <i class="bi-list-ul me-2"></i>글 목록
-                            <!-- 글 수 : 컨트롤러가 넘겨준 posts 목록의 크기 -->
-                            <small class="text-muted" th:text="|전체 ${#lists.size(posts)}개|">전체 0개</small>
+                            <!-- 글 수 : page 가 있으면(10주차 페이징) 전체 글 수, 없으면 posts 목록의 크기 -->
+                            <small class="text-muted" th:text="|전체 ${page != null ? page.totalElements : #lists.size(posts)}개|">전체 0개</small>
                         </h5>
-                        <!-- 글쓰기 버튼 : 로그인한 사람에게만 보인다 (5주차 sec:authorize) -->
-                        <a sec:authorize="isAuthenticated()" th:href="@{/board/write}" class="btn btn-primary btn-sm-custom"><i class="bi-pencil me-1"></i>글쓰기</a>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <!-- [10주차] 검색 : GET /board?keyword=검색어 ("내가 쓴 글" 화면에서는 숨김) -->
+                            <form th:if="${listTitle == null}" th:action="@{/board}" method="get" class="d-flex gap-2 board-search">
+                                <!-- [10주차 연습문제 2] 컨트롤러가 type 을 넘겨주면 검색 범위 선택 상자가 보인다 -->
+                                <select th:if="${type != null}" name="type" class="form-select form-select-sm">
+                                    <option value="all" th:selected="${type == 'all'}">제목+내용</option>
+                                    <option value="writer" th:selected="${type == 'writer'}">작성자</option>
+                                </select>
+                                <input type="search" name="keyword" th:value="${keyword}" class="form-control form-control-sm" placeholder="검색어 입력">
+                                <button type="submit" class="btn btn-outline-primary btn-sm-custom text-nowrap"><i class="bi-search me-1"></i>검색</button>
+                            </form>
+                            <!-- 글쓰기 버튼 : 로그인한 사람에게만 보인다 (5주차 sec:authorize) -->
+                            <a sec:authorize="isAuthenticated()" th:href="@{/board/write}" class="btn btn-primary btn-sm-custom text-nowrap"><i class="bi-pencil me-1"></i>글쓰기</a>
+                        </div>
+                    </div>
+
+                    <!-- [10주차] 검색 중일 때 안내 + 전체 목록으로 돌아가기 -->
+                    <div th:if="${keyword != null and !#strings.isEmpty(keyword)}" class="search-info mb-3">
+                        <i class="bi-search me-1"></i><strong th:text="|'${keyword}'|">'스프링'</strong> 검색 결과
+                        <strong th:text="${page != null ? page.totalElements : #lists.size(posts)}">0</strong>개
+                        <a th:href="@{/board}" class="ms-2 small">전체 목록 보기</a>
                     </div>
 
                     <div class="table-responsive">
@@ -60,6 +79,8 @@
                                     <td th:text="${post.id}">1</td>
                                     <td class="text-start">
                                         <a th:href="@{/board/{id}(id=${post.id})}" th:text="${post.title}" class="board-title">제목</a>
+                                        <!-- [10주차 단계 5] @OneToMany 를 추가한 뒤, 이 줄과 아래 끝 줄을 지우면 제목 옆에 댓글 수가 보인다 -->
+                                        <span th:if="${post.comments.size() > 0}" class="comment-count" th:text="|[${post.comments.size()}]|">[3]</span>
                                         <span th:if="${post.updatedAt != null}" class="edited-badge">수정됨</span>
                                     </td>
                                     <!-- post.author.name : 글 → 작성자(Member) → 이름 (@ManyToOne 덕분에 객체로 따라간다) -->
@@ -68,11 +89,31 @@
                                     <td th:text="${post.viewCount}">0</td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(posts)}">
-                                    <td colspan="5" class="text-muted py-4">아직 글이 없습니다. 첫 글을 써 보세요!</td>
+                                    <td colspan="5" class="text-muted py-4" th:text="${keyword != null and !#strings.isEmpty(keyword)} ? '검색 결과가 없습니다.' : '아직 글이 없습니다. 첫 글을 써 보세요!'">아직 글이 없습니다.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- [10주차] 페이지 번호 : page 가 있을 때만. page.number 는 0 부터, 화면에는 1 부터 표시 -->
+                    <!-- 링크에 keyword·type 을 함께 붙여서, 검색 결과의 2페이지도 검색 결과로 이어지게 한다 -->
+                    <nav th:if="${page != null and page.totalPages > 1}" class="mt-4"
+                         th:with="url=${pageUrl ?: '/board'},
+                                  start=${T(java.lang.Math).max(0, page.number - 2)},
+                                  end=${T(java.lang.Math).min(page.totalPages - 1, page.number + 2)}">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{${url}(page=${page.number - 1},keyword=${keyword},type=${type})}">이전</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(start, end)}" th:classappend="${i == page.number} ? 'active'">
+                                <a class="page-link" th:href="@{${url}(page=${i},keyword=${keyword},type=${type})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{${url}(page=${page.number + 1},keyword=${keyword},type=${type})}">다음</a>
+                            </li>
+                        </ul>
+                        <p class="text-center text-muted small mt-2 mb-0" th:text="|${page.number + 1} / ${page.totalPages} 페이지|">1 / 1 페이지</p>
+                    </nav>
                 </div>
             </div>
         </main>
