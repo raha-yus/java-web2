@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>신청 바구니 - First Portfolio</title>
+
+        <!-- [11주차 제공] 신청 바구니 + 내 신청 내역 (게시판 화면과 같은 모양) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/bootstrap-icons.css}" rel="stylesheet">
+        <link th:href="@{/css/templatemo-first-portfolio-style.css}" rel="stylesheet">
+        <link th:href="@{/css/board.css}" rel="stylesheet">
+    </head>
+
+    <body>
+        <header class="board-header">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <a th:href="@{/board}" class="small"><i class="bi-arrow-left me-1"></i>게시판으로</a>
+                    <h1 class="mt-1"><i class="bi-basket me-2"></i>신청 바구니</h1>
+                </div>
+                <span><i class="bi-person-circle me-1"></i><strong sec:authentication="name">user</strong>님</span>
+            </div>
+        </header>
+
+        <main class="board-body">
+            <div class="container">
+                <!-- 처리 결과 : 컨트롤러가 redirect 하면서 한 번만 넘겨주는 값 (flash) -->
+                <div th:if="${message}" class="alert alert-success py-2"><i class="bi-check-circle me-1"></i> <span th:text="${message}">신청 완료</span></div>
+                <div th:if="${error}" class="alert alert-danger py-2"><i class="bi-exclamation-circle me-1"></i> <span th:text="${error}">실패 이유</span></div>
+
+                <!-- ① 바구니 : cartPosts (세션에 담긴 모집글) -->
+                <div class="board-card">
+                    <h5 class="mb-3"><i class="bi-basket me-2"></i>담은 모집글 <small class="text-muted" th:text="|${#lists.size(cartPosts)}개|">0개</small></h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 board-table">
+                            <thead>
+                                <tr><th style="width: 80px">포스터</th><th>제목</th><th style="width: 110px">정원</th><th style="width: 110px">남은 자리</th><th style="width: 90px"></th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="post : ${cartPosts}">
+                                    <td>
+                                        <img th:if="${post.posterFile != null}" th:src="@{/uploads/{f}(f=${post.posterFile})}" class="cart-thumb" alt="포스터">
+                                        <span th:if="${post.posterFile == null}" class="cart-thumb d-inline-block"></span>
+                                    </td>
+                                    <td class="text-start">
+                                        <span th:if="${post.full}" class="recruit-badge closed me-1">마감</span>
+                                        <a th:href="@{/board/{id}(id=${post.id})}" th:text="${post.title}" class="board-title">제목</a>
+                                    </td>
+                                    <td th:text="|${post.capacity}명|">5명</td>
+                                    <td><strong class="text-primary" th:text="${post.remaining}">5</strong></td>
+                                    <td>
+                                        <form th:action="@{/cart/{id}/remove(id=${post.id})}" method="post" class="m-0">
+                                            <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi-x-circle me-1"></i>빼기</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(cartPosts)}">
+                                    <td colspan="5" class="text-muted py-4">바구니가 비어 있습니다. 게시판의 모집글에서 담아 보세요!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 신청 확정 : 바구니 전체를 한 번에. POST /cart/confirm (단계 4) -->
+                    <form th:unless="${#lists.isEmpty(cartPosts)}" th:action="@{/cart/confirm}" method="post" class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary btn-sm-custom"><i class="bi-check2-all me-1"></i>모두 신청 확정</button>
+                    </form>
+                </div>
+
+                <!-- ② 내 신청 내역 : 컨트롤러가 enrollments 를 넘겨줄 때만 보인다 (단계 4) -->
+                <div class="board-card mt-4" th:if="${enrollments != null}">
+                    <h5 class="mb-3"><i class="bi-card-checklist me-2"></i>내 신청 내역 <small class="text-muted" th:text="|${#lists.size(enrollments)}개|">0개</small></h5>
+                    <div class="table-responsive">
+                        <table class="table mb-0 board-table">
+                            <thead>
+                                <tr><th>모집글</th><th style="width: 130px">신청 / 정원</th><th style="width: 160px">신청 시간</th><th style="width: 90px"></th></tr>
+                            </thead>
+                            <tbody>
+                                <!-- enrollment.post.title : 신청 → 모집글 → 제목 (@ManyToOne) -->
+                                <tr th:each="enrollment : ${enrollments}">
+                                    <td class="text-start"><a th:href="@{/board/{id}(id=${enrollment.post.id})}" th:text="${enrollment.post.title}" class="board-title">모집글</a></td>
+                                    <td th:text="|${enrollment.post.appliedCount} / ${enrollment.post.capacity}|">1 / 5</td>
+                                    <td th:text="${#temporals.format(enrollment.createdAt, 'yyyy-MM-dd HH:mm')}">2026-11-17 10:00</td>
+                                    <td>
+                                        <!--/* [11주차 연습문제 1] 신청 취소 : 이 주석을 풀면 취소 버튼이 보인다 (POST /cart/enrollments/{id}/cancel)
+                                        <form th:action="@{/cart/enrollments/{id}/cancel(id=${enrollment.id})}" method="post" class="m-0"
+                                              onsubmit="return confirm('신청을 취소하시겠습니까?');">
+                                            <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi-x-circle me-1"></i>취소</button>
+                                        </form>
+                                        */-->
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(enrollments)}">
+                                    <td colspan="4" class="text-muted py-4">아직 신청한 모집글이 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

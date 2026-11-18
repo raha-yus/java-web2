@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title th:text="${postId == null} ? '글쓰기 - 게시판' : '글 수정 - 게시판'">글쓰기 - 게시판</title>
 
-        <!-- [9주차 제공] 글쓰기·수정 공용 화면 : postId 가 있으면 수정, 없으면 새 글 -->
+        <!-- [9주차 제공 → 11주차 수정] 글쓰기·수정 공용 화면 : postId 가 있으면 수정, 없으면 새 글 (+ 모집 인원·포스터) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -30,7 +30,9 @@
                     <div th:if="${error}" class="alert alert-danger py-2"><i class="bi-exclamation-circle me-1"></i> <span th:text="${error}">에러</span></div>
 
                     <!-- name 속성 = PostForm(DTO) 의 필드 이름 : title, content (작성자는 보내지 않는다) -->
-                    <form th:action="${postId == null} ? @{/board/write} : @{/board/{id}/edit(id=${postId})}" method="post">
+                    <!-- [11주차] 파일을 보내려면 enctype="multipart/form-data" (없으면 파일 이름만 간다) -->
+                    <form th:action="${postId == null} ? @{/board/write} : @{/board/{id}/edit(id=${postId})}" method="post"
+                          enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="title" class="form-label">제목</label>
                             <input type="text" class="form-control" id="title" name="title" th:value="${postForm?.title}"
@@ -41,6 +43,22 @@
                             <textarea class="form-control" id="content" name="content" rows="12"
                                       placeholder="내용을 입력하세요" th:text="${postForm?.content}"></textarea>
                         </div>
+                        <!-- [11주차] 모집글 설정 : 새 글에서만 (name = PostForm 의 capacity, poster) -->
+                        <div th:if="${postId == null}" class="recruit-setting mb-4">
+                            <h6 class="mb-3"><i class="bi-people me-2"></i>특강·스터디 모집 <small class="text-muted">(일반 글이면 비워 두세요)</small></h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="capacity" class="form-label">모집 인원</label>
+                                    <input type="number" class="form-control" id="capacity" name="capacity" min="1" max="100"
+                                           th:value="${postForm?.capacity}" placeholder="예 : 5">
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="poster" class="form-label">포스터 이미지 <small class="text-muted">(jpg · png · gif · webp, 5MB 까지)</small></label>
+                                    <input type="file" class="form-control" id="poster" name="poster" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end gap-2">
                             <a th:href="${postId == null} ? @{/board} : @{/board/{id}(id=${postId})}" class="btn btn-outline-secondary btn-sm-custom">취소</a>
                             <button type="submit" class="btn btn-primary btn-sm-custom">
@@ -50,6 +68,17 @@
                     </form>
                     <p class="text-muted small mt-3 mb-0"><i class="bi-info-circle me-1"></i>작성자는 로그인한 계정(<strong sec:authentication="name">user</strong>)으로 자동 저장됩니다.</p>
                 </div>
+                <!-- [11주차] 1차 안내 : 5MB 넘는 파일은 보내기 전에 막는다 (진짜 검사는 서버 설정 + FileStore) -->
+                <script>
+                    const poster = document.getElementById('poster');
+                    if (poster) poster.addEventListener('change', () => {
+                        const file = poster.files[0];
+                        if (file && file.size > 5 * 1024 * 1024) {
+                            alert('포스터는 5MB 까지 올릴 수 있습니다.');
+                            poster.value = '';
+                        }
+                    });
+                </script>
             </div>
         </main>
     </body>

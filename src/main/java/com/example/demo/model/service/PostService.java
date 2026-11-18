@@ -2,6 +2,7 @@ package com.example.demo.model.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -13,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import com.example.demo.model.domain.Member;
 import com.example.demo.model.domain.Post;
@@ -26,7 +26,12 @@ public class PostService {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired // [11주차] 단계 2 : 업로드 파일 저장소 (제공 코드)
+    private FileStore fileStore;
 
     public List<Post> findAll() { // 전체 목록 (최신 글이 위로)
         return postRepository.findAll(
@@ -48,6 +53,10 @@ public class PostService {
         post.setContent(form.getContent());
         post.setAuthor(author);
         post.setCreatedAt(LocalDateTime.now());
+        post.setUpdatedAt(LocalDateTime.now());
+        post.setCapacity(form.getCapacity()); // [11주차] 단계 1 : 정원 (비우면 null = 일반 글)
+        post.setCapacity(form.getCapacity());
+        post.setPosterFile(fileStore.save(form.getPoster())); // [11주차] 단계 2 : 포스터 저장 → 파일 이름 (없으면 null)    
 
         return postRepository.save(post); // INSERT
     }
@@ -66,6 +75,16 @@ public class PostService {
                 "제목은 100자까지 입력할 수 있습니다."
             );
         }
+
+        // [11주차] 단계 1 : 모집 인원은 1~100명
+        if (form.getCapacity() != null && (form.getCapacity() < 1 || form.getCapacity() > 100)) {
+            throw new IllegalArgumentException("모집 인원은 1~100명으로 입력하세요.");
+        }
+    }
+
+    // [11주차] 단계 3 : 바구니에 담긴 글들 (번호 목록으로 한 번에)
+    public List<Post> findAllById(Collection<Long> ids) {
+        return postRepository.findAllById(ids); // SELECT ... WHERE id IN (?, ?, ?)
     }
 
     public Post findById(Long id) { // 글 1개 조회 (없으면 404)

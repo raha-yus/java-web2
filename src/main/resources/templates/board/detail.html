@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title th:text="|${post.title} - 게시판|">글 보기 - 게시판</title>
 
-        <!-- [9주차 제공 → 10주차 수정] 게시글 상세 + 댓글 -->
+        <!-- [9주차 제공 → 10주차 · 11주차 수정] 게시글 상세 + 댓글 + 모집 정보 -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -25,6 +25,9 @@
 
         <main class="board-body">
             <div class="container">
+                <!-- [11주차 연습문제 2] 신청자가 있는 모집글 삭제 시도 -->
+                <div th:if="${param.deleteError}" class="alert alert-danger py-2"><i class="bi-exclamation-circle me-1"></i> 신청자가 있는 모집글은 삭제할 수 없습니다.</div>
+
                 <div class="board-card">
                     <!-- post : 컨트롤러가 넘겨준 글 1개 -->
                     <h3 class="mb-2" th:text="${post.title}">제목</h3>
@@ -37,6 +40,27 @@
                     </div>
 
                     <!-- 줄바꿈을 그대로 보여 준다 (white-space: pre-wrap), th:text 라서 HTML 태그는 글자로 보인다 (XSS 방지) -->
+                    <!-- [11주차] 모집글 : 정원이 있을 때만 (post.recruit = isRecruit()) -->
+                    <div th:if="${post.recruit}" class="recruit-box d-flex flex-wrap gap-4 align-items-center mb-4">
+                        <!-- 포스터 : /uploads/파일이름 (WebConfig 가 uploads 폴더와 연결) -->
+                        <img th:if="${post.posterFile != null}" th:src="@{/uploads/{f}(f=${post.posterFile})}" class="recruit-poster" alt="포스터">
+                        <div class="flex-grow-1">
+                            <span th:if="${post.full}" class="recruit-badge closed">마감</span>
+                            <span th:unless="${post.full}" class="recruit-badge">모집 중</span>
+                            <p class="mt-2 mb-1">정원 <strong th:text="${post.capacity}">5</strong>명 ·
+                                신청 <strong th:text="${post.appliedCount}">0</strong>명 ·
+                                남은 자리 <strong class="text-primary" th:text="${post.remaining}">5</strong></p>
+                            <div class="progress mb-3" style="height: 8px">
+                                <div class="progress-bar" th:style="|width: ${post.appliedCount * 100 / post.capacity}%|"></div>
+                            </div>
+                            <!-- 바구니 담기 : 로그인 + 마감 전. POST /cart/{id} (단계 2) -->
+                            <form sec:authorize="isAuthenticated()" th:unless="${post.full}" th:action="@{/cart/{id}(id=${post.id})}" method="post" class="m-0">
+                                <button type="submit" class="btn btn-primary btn-sm-custom"><i class="bi-basket me-1"></i>신청 바구니에 담기</button>
+                            </form>
+                            <p sec:authorize="isAnonymous()" class="text-muted small mb-0"><a th:href="@{/login}">로그인</a>하면 신청할 수 있습니다.</p>
+                        </div>
+                    </div>
+
                     <div class="post-content" th:text="${post.content}">내용</div>
 
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3 border-top"
